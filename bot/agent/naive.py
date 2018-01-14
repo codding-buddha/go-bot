@@ -2,7 +2,7 @@ import random
 
 from .base import Agent
 from .helpers import is_point_an_eye
-from ..goboard_slow import Move
+from ..goboard import Move
 from ..gotypes import Point
 
 class RandomBot(Agent):

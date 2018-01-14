@@ -1,5 +1,6 @@
 import copy
 from .gotypes import Player
+from . import zobrist
 
 
 class Move():
@@ -82,6 +83,7 @@ class Board():
         self.num_rows = num_rows
         self.num_cols = num_cols
         self._grid = {}
+        self._hash = zobrist.EMPTY_BOARD
     
     def place_stone(self, player, point):
         if not self.get(point) is None:
@@ -116,6 +118,11 @@ class Board():
         for new_string_point in new_string.stones:
             self._grid[new_string_point] = new_string
 
+        # Remove empty-point hash code
+        self._hash ^= zobrist.HASH_CODE[point, None]
+        # Add filled point hash code
+        self._hash ^= zobrist.HASH_CODE[point, player]
+
         for other_color_string in adjacent_opp_color:
             other_color_string.remove_liberty(point)
 
@@ -149,6 +156,13 @@ class Board():
                     neighbour_string.add_liberty(point)
                 
             self._grid[point] = None
+            # Remove the filled point hash code
+            self._hash ^= zobrist.HASH_CODE[point, string.color]
+            # Add empty point hash code
+            self._hash ^= zobrist.HASH_CODE[point, None]
+
+    def zobrist_hash(self):
+        return self._hash
 
 class GameState():
     
@@ -156,6 +170,11 @@ class GameState():
         self.board = board
         self.next_player = next_player
         self.previous_state = previous
+        if previous is None:
+            self.previous_states = frozenset()
+        else:
+            self.previous_states = frozenset(previous.previous_states | {(previous.next_player, previous.board.zobrist_hash())})
+        
         self.last_move = move
 
     def apply_move(self, player, move):
@@ -208,14 +227,8 @@ class GameState():
 
         next_board = copy.deepcopy(self.board)
         next_board.place_stone(player, move.point)
-        nex_situation = (player.other, next_board)
-        past_state = self.previous_state
-        while past_state is not None:
-            if past_state.situation == nex_situation:
-                return True
-            past_state = past_state.previous_state
-
-        return False
+        next_situation = (player.other, next_board)
+        return next_situation in self.previous_states
 
     def is_move_valid(self, move):
         if self.is_over():

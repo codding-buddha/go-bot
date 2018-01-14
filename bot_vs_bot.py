@@ -1,5 +1,5 @@
 from bot.agent.naive import RandomBot
-from bot import goboard_slow
+from bot import goboard
 from bot import gotypes
 from bot.utils import print_board, print_move
 import time
@@ -8,7 +8,7 @@ def main():
     """Play bot against itself on board of size 9x9"""
 
     board_size = 9
-    game = goboard_slow.GameState.new_game(board_size)
+    game = goboard.GameState.new_game(board_size)
     bots = {
         gotypes.Player.black: RandomBot(),
         gotypes.Player.white: RandomBot()
