@@ -1,23 +1,25 @@
 from bot.agent.naive import RandomBot
-from bot import goboard
+from bot import goboard_slow
 from bot import gotypes
-from bot.utils import print_board, print_move, point_from_coords
+from bot.utils import print_board, print_move, points_from_coords
+import time
+import os
+
+def cls():
+    os.system('cls' if os.name=='nt' else 'clear')
 
 def main():
-    """Play bot against itself on board of size 9x9"""
-
     board_size = 9
-    game = goboard.GameState.new_game(board_size)
+    game = goboard_slow.GameState.new_game(board_size)
     bot = RandomBot()
 
     while not game.is_over():
-        # clear screen
-        print('\n'*4)
+        cls()
         print_board(game.board)
         if game.next_player == gotypes.Player.black:
             human_move = input('-- ')
-            point = point_from_coords(human_move.strip())
-            move = goboard.Move.play(point)
+            point = points_from_coords(human_move.strip())
+            move = goboard_slow.Move(point=point)
         else:
             move = bot.select_move(game)
         print_move(game.next_player, move)
